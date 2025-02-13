@@ -128,21 +128,35 @@ async function onRequestPermissionClick() {
 //监听消息生成完毕事件
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
+// 添加新的判断函数
+function shouldSendReminder() {
+    // 如果标签页隐藏，肯定需要提醒
+    if (document.hidden) {
+        return true;
+    }
+    // 如果标签页可见但窗口失去焦点，也需要提醒
+    if (!document.hidden && !document.hasFocus()) {
+        return true;
+    }
+    return false;
+}
+
 function handleIncomingMessage(data) {
-    // 只在提醒功能开启且页面隐藏时才修改标题和开始闪烁
-    if (document.hidden && extension_settings[extensionName].enableReminder) {
+    const needReminder = shouldSendReminder();
+    
+    // 标题闪烁提醒
+    if (needReminder && extension_settings[extensionName].enableReminder) {
         startTitleFlash();
     }
-    // 发送通知
-    if (document.hidden) {
+    // 系统通知提醒
+    if (needReminder) {
         sendNotification();
     }
-    // 如果页面可见，不做任何处理
 }
 
 // 当扩展加载时调用此函数
 jQuery(async () => {
-    const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
+    const settingsHtml = await $.get(`${extensionFolderPath}/reminder.html`);
     $("#extensions_settings2").append(settingsHtml);
 
     // 加载CSS文件
