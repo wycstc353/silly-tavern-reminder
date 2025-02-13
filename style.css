@@ -1,1 +1,9 @@
-/* All style elements for your extension go here */
+.example-extension_block i.fa-info-circle {
+    display: flex;
+    align-items: center;
+    margin-left: 5px;
+}
+
+#request_notification_permission {
+    margin-left: 10px;
+}

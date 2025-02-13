@@ -145,6 +145,12 @@ jQuery(async () => {
     const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
     $("#extensions_settings2").append(settingsHtml);
 
+    // 加载CSS文件
+    const styleSheet = document.createElement('link');
+    styleSheet.rel = 'stylesheet';
+    styleSheet.href = `/scripts/extensions/third-party/${extensionName}/style.css`;
+    document.head.appendChild(styleSheet);
+
     // 只保留复选框事件监听
     $("#example_setting").on("input", onReminderToggle);
     $("#notification_setting").on("input", onNotificationToggle);
