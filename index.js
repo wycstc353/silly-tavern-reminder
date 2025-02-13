@@ -5,7 +5,7 @@
 import { extension_settings, getContext, loadExtensionSettings } from "../../../extensions.js";
 
 // 你可能需要从主脚本导入一些其他函数
-import { saveSettingsDebounced } from "../../../../script.js";
+import { saveSettingsDebounced, eventSource, event_types } from "../../../../script.js";
 
 // 跟踪扩展的位置，名称应与仓库名称匹配
 const extensionName = "silly-tavern-reminder";
@@ -58,13 +58,13 @@ jQuery(async () => {
 
 
 
+  //监听事件
+  eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
+
+  function handleIncomingMessage(data) {
+    console.log("收到新消息:", data);  // 在控制台打印消息数据
+  }
+
   // 启动时加载设置（如果有的话）
   loadSettings();
 });
-
-//监听事件
-eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
-
-function handleIncomingMessage(data) {
-  console.log("收到新消息:", data);  // 在控制台打印消息数据
-}
