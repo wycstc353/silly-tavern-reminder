@@ -100,6 +100,31 @@ function onNotificationToggle(event) {
     saveSettingsDebounced();
 }
 
+// 添加权限申请按钮处理函数
+async function onRequestPermissionClick() {
+    if (!("Notification" in window)) {
+        toastr.error('此浏览器不支持通知功能');
+        return;
+    }
+    
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+            toastr.success('已获得通知权限');
+            // 测试通知
+            new Notification("通知权限测试", {
+                body: "如果您看到这条通知，说明权限已经设置成功",
+                icon: "/favicon.ico"
+            });
+        } else {
+            toastr.warning('未获得通知权限，系统通知功能将无法使用');
+        }
+    } catch (error) {
+        console.error(error);
+        toastr.error('申请权限时出现错误');
+    }
+}
+
 //监听消息生成完毕事件
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
@@ -123,6 +148,7 @@ jQuery(async () => {
     // 只保留复选框事件监听
     $("#example_setting").on("input", onReminderToggle);
     $("#notification_setting").on("input", onNotificationToggle);
+    $("#request_notification_permission").on("click", onRequestPermissionClick);
 
     loadSettings();
     await requestNotificationPermission();
