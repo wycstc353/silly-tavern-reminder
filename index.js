@@ -1,63 +1,61 @@
-// The main script for the extension
-// The following are examples of some basic extension functionality
+// 扩展的主脚本
+// 以下是一些基本扩展功能的示例
 
-//You'll likely need to import extension_settings, getContext, and loadExtensionSettings from extensions.js
+// 你可能需要从 extensions.js 导入 extension_settings, getContext 和 loadExtensionSettings
 import { extension_settings, getContext, loadExtensionSettings } from "../../../extensions.js";
 
-//You'll likely need to import some other functions from the main script
+// 你可能需要从主脚本导入一些其他函数
 import { saveSettingsDebounced } from "../../../../script.js";
 
-// Keep track of where your extension is located, name should match repo name
-const extensionName = "st-extension-example";
+// 跟踪扩展的位置，名称应与仓库名称匹配
+const extensionName = "silly-tavern-reminder";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 const defaultSettings = {};
 
-
- 
-// Loads the extension settings if they exist, otherwise initializes them to the defaults.
+// 如果存在扩展设置，则加载它们，否则将其初始化为默认值
 async function loadSettings() {
-  //Create the settings if they don't exist
+  // 如果设置不存在则创建它们
   extension_settings[extensionName] = extension_settings[extensionName] || {};
   if (Object.keys(extension_settings[extensionName]).length === 0) {
     Object.assign(extension_settings[extensionName], defaultSettings);
   }
 
-  // Updating settings in the UI
+  // 在 UI 中更新设置
   $("#example_setting").prop("checked", extension_settings[extensionName].example_setting).trigger("input");
 }
 
-// This function is called when the extension settings are changed in the UI
+// 当扩展设置在 UI 中更改时调用此函数
 function onExampleInput(event) {
   const value = Boolean($(event.target).prop("checked"));
   extension_settings[extensionName].example_setting = value;
   saveSettingsDebounced();
 }
 
-// This function is called when the button is clicked
+// 当按钮被点击时调用此函数
 function onButtonClick() {
-  // You can do whatever you want here
-  // Let's make a popup appear with the checked setting
+  // 你可以在这里做任何你想做的事情
+  // 让我们弹出一个带有选中设置的弹窗
   toastr.info(
-    `The checkbox is ${extension_settings[extensionName].example_setting ? "checked" : "not checked"}`,
-    "A popup appeared because you clicked the button!"
+    `复选框是 ${extension_settings[extensionName].example_setting ? "选中" : "未选中"}`,
+    "因为你点击了按钮，所以弹出了一个弹窗！"
   );
 }
 
-// This function is called when the extension is loaded
+// 当扩展加载时调用此函数
 jQuery(async () => {
-  // This is an example of loading HTML from a file
+  // 这是从文件加载 HTML 的示例
   const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
 
-  // Append settingsHtml to extensions_settings
-  // extension_settings and extensions_settings2 are the left and right columns of the settings menu
-  // Left should be extensions that deal with system functions and right should be visual/UI related 
+  // 将 settingsHtml 附加到 extensions_settings
+  // extension_settings 和 extensions_settings2 是设置菜单的左右列
+  // 左侧应为处理系统功能的扩展，右侧应为视觉/UI 相关的扩展
   $("#extensions_settings").append(settingsHtml);
 
-  // These are examples of listening for events
+  // 这些是监听事件的示例
   $("#my_button").on("click", onButtonClick);
   $("#example_setting").on("input", onExampleInput);
 
-  // Load settings when starting things up (if you have any)
+  // 启动时加载设置（如果有的话）
   loadSettings();
 });
