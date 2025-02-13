@@ -13,12 +13,35 @@ const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 const defaultSettings = {
     enableReminder: true, // 添加提醒功能的默认值
+    enableNotification: true, // 添加通知功能的默认值
 };
 
 // 添加闪烁相关变量
 let titleFlashTimer = null;
 let originalTitle = document.title;
 let isFlashing = false;
+
+// 请求通知权限
+async function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        console.log("此浏览器不支持通知功能");
+        return;
+    }
+    
+    if (Notification.permission !== "granted") {
+        await Notification.requestPermission();
+    }
+}
+
+// 发送通知
+function sendNotification() {
+    if (Notification.permission === "granted" && extension_settings[extensionName].enableNotification) {
+        new Notification("SillyTavern 新消息", {
+            body: "您有新的消息",
+            icon: "/favicon.ico"
+        });
+    }
+}
 
 // 开始闪烁标题
 function startTitleFlash() {
@@ -56,7 +79,8 @@ async function loadSettings() {
   }
 
   // 在 UI 中更新设置
-  $("#example_setting").prop("checked", extension_settings[extensionName].example_setting).trigger("input");
+  $("#example_setting").prop("checked", extension_settings[extensionName].enableReminder).trigger("input");
+  $("#notification_setting").prop("checked", extension_settings[extensionName].enableNotification).trigger("input");
 }
 
 // 当扩展设置在 UI 中更改时调用此函数
@@ -66,6 +90,16 @@ function onReminderToggle(event) {
   saveSettingsDebounced();
 }
 
+// 添加通知设置切换函数
+function onNotificationToggle(event) {
+    const value = Boolean($(event.target).prop("checked"));
+    extension_settings[extensionName].enableNotification = value;
+    if (value) {
+        requestNotificationPermission();
+    }
+    saveSettingsDebounced();
+}
+
 //监听消息生成完毕事件
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
@@ -73,6 +107,10 @@ function handleIncomingMessage(data) {
     // 只在提醒功能开启且页面隐藏时才修改标题和开始闪烁
     if (document.hidden && extension_settings[extensionName].enableReminder) {
         startTitleFlash();
+    }
+    // 发送通知
+    if (document.hidden) {
+        sendNotification();
     }
     // 如果页面可见，不做任何处理
 }
@@ -84,6 +122,8 @@ jQuery(async () => {
 
     // 只保留复选框事件监听
     $("#example_setting").on("input", onReminderToggle);
+    $("#notification_setting").on("input", onNotificationToggle);
 
     loadSettings();
+    await requestNotificationPermission();
 });
