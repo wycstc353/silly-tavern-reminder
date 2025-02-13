@@ -70,6 +70,13 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+// 添加窗口焦点变化监听
+window.addEventListener('focus', () => {
+    if (isFlashing) {
+        stopTitleFlash();
+    }
+});
+
 // 如果存在扩展设置，则加载它们，否则将其初始化为默认值
 async function loadSettings() {
   // 如果设置不存在则创建它们
@@ -79,7 +86,7 @@ async function loadSettings() {
   }
 
   // 在 UI 中更新设置
-  $("#example_setting").prop("checked", extension_settings[extensionName].enableReminder).trigger("input");
+  $("#title_reminder_setting").prop("checked", extension_settings[extensionName].enableReminder).trigger("input");
   $("#notification_setting").prop("checked", extension_settings[extensionName].enableNotification).trigger("input");
 }
 
@@ -166,7 +173,7 @@ jQuery(async () => {
     document.head.appendChild(styleSheet);
 
     // 只保留复选框事件监听
-    $("#example_setting").on("input", onReminderToggle);
+    $("#title_reminder_setting").on("input", onReminderToggle);
     $("#notification_setting").on("input", onNotificationToggle);
     $("#request_notification_permission").on("click", onRequestPermissionClick);
 
