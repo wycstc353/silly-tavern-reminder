@@ -66,16 +66,6 @@ function onReminderToggle(event) {
   saveSettingsDebounced();
 }
 
-// 当按钮被点击时调用此函数
-function onButtonClick() {
-  // 你可以在这里做任何你想做的事情
-  // 让我们弹出一个带有选中设置的弹窗
-  toastr.info(
-    `复选框是 ${extension_settings[extensionName].example_setting ? "选中" : "未选中"}`,
-    "因为你点击了按钮，所以弹出了一个弹窗！"
-  );
-}
-
 //监听消息生成完毕事件
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
@@ -89,18 +79,11 @@ function handleIncomingMessage(data) {
 
 // 当扩展加载时调用此函数
 jQuery(async () => {
-  // 这是从文件加载 HTML 的示例
-  const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
+    const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
+    $("#extensions_settings2").append(settingsHtml);
 
-  // 将 settingsHtml 附加到 extensions_settings
-  // extension_settings 和 extensions_settings2 是设置菜单的左右列
-  // 左侧应为处理系统功能的扩展，右侧应为视觉/UI 相关的扩展
-  $("#extensions_settings2").append(settingsHtml);
+    // 只保留复选框事件监听
+    $("#example_setting").on("input", onReminderToggle);
 
-  // 这些是监听事件的示例
-  $("#my_button").on("click", onButtonClick);
-  $("#example_setting").on("input", onReminderToggle);
-
-  // 启动时加载设置（如果有的话）
-  loadSettings();
+    loadSettings();
 });
