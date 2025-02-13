@@ -42,6 +42,16 @@ function onButtonClick() {
   );
 }
 
+//监听事件
+eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
+
+function handleIncomingMessage(data) {
+  console.log("收到新消息:", data);  // 在控制台打印消息数据
+  toastr.info(
+    "收到消息了"
+  );
+}
+
 // 当扩展加载时调用此函数
 jQuery(async () => {
   // 这是从文件加载 HTML 的示例
@@ -55,15 +65,6 @@ jQuery(async () => {
   // 这些是监听事件的示例
   $("#my_button").on("click", onButtonClick);
   $("#example_setting").on("input", onExampleInput);
-
-
-
-  //监听事件
-  eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
-
-  function handleIncomingMessage(data) {
-    console.log("收到新消息:", data);  // 在控制台打印消息数据
-  }
 
   // 启动时加载设置（如果有的话）
   loadSettings();
