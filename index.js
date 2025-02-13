@@ -50,12 +50,21 @@ jQuery(async () => {
   // 将 settingsHtml 附加到 extensions_settings
   // extension_settings 和 extensions_settings2 是设置菜单的左右列
   // 左侧应为处理系统功能的扩展，右侧应为视觉/UI 相关的扩展
-  $("#extensions_settings").append(settingsHtml);
+  $("#extensions_settings2").append(settingsHtml);
 
   // 这些是监听事件的示例
   $("#my_button").on("click", onButtonClick);
   $("#example_setting").on("input", onExampleInput);
 
+
+
   // 启动时加载设置（如果有的话）
   loadSettings();
 });
+
+//监听事件
+eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
+
+function handleIncomingMessage(data) {
+  console.log("收到新消息:", data);  // 在控制台打印消息数据
+}
