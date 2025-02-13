@@ -89,9 +89,9 @@ async function loadSettings() {
     Object.assign(extension_settings[extensionName], defaultSettings);
   }
 
-  // 在 UI 中更新设置
-  $("#title_reminder_setting").prop("checked", extension_settings[extensionName].enableReminder).trigger("input");
-  $("#notification_setting").prop("checked", extension_settings[extensionName].enableNotification).trigger("input");
+  // 修改更新UI的方式，避免触发input事件
+  $("#title_reminder_setting").prop("checked", extension_settings[extensionName].enableReminder);
+  $("#notification_setting").prop("checked", extension_settings[extensionName].enableNotification);
 }
 
 // 当扩展设置在 UI 中更改时调用此函数
@@ -101,17 +101,19 @@ function onReminderToggle(event) {
   saveSettingsDebounced();
 }
 
-// 添加通知设置切换函数
+// 修改通知设置切换函数
 async function onNotificationToggle(event) {
     const value = Boolean($(event.target).prop("checked"));
     
+    // 只有当用户手动开启通知时才请求权限
     if (value && Notification.permission === "denied") {
         toastr.error('通知权限已被拒绝，请在浏览器设置中手动开启');
         $(event.target).prop("checked", false);
         return;
     }
 
-    if (value && Notification.permission !== "granted") {
+    // 如果是程序设置的checked状态，不要请求权限
+    if (value && Notification.permission !== "granted" && event.isTrigger === undefined) {
         const granted = await requestNotificationPermission();
         if (!granted) {
             $(event.target).prop("checked", false);
