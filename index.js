@@ -25,11 +25,15 @@ let isFlashing = false;
 async function requestNotificationPermission() {
     if (!("Notification" in window)) {
         console.log("此浏览器不支持通知功能");
-        return;
+        return false;
     }
     
-    if (Notification.permission !== "granted") {
-        await Notification.requestPermission();
+    try {
+        const permission = await Notification.requestPermission();
+        return permission === "granted";
+    } catch (error) {
+        console.error("请求通知权限时出错:", error);
+        return false;
     }
 }
 
@@ -98,12 +102,24 @@ function onReminderToggle(event) {
 }
 
 // 添加通知设置切换函数
-function onNotificationToggle(event) {
+async function onNotificationToggle(event) {
     const value = Boolean($(event.target).prop("checked"));
-    extension_settings[extensionName].enableNotification = value;
-    if (value) {
-        requestNotificationPermission();
+    
+    if (value && Notification.permission === "denied") {
+        toastr.error('通知权限已被拒绝，请在浏览器设置中手动开启');
+        $(event.target).prop("checked", false);
+        return;
     }
+
+    if (value && Notification.permission !== "granted") {
+        const granted = await requestNotificationPermission();
+        if (!granted) {
+            $(event.target).prop("checked", false);
+            return;
+        }
+    }
+
+    extension_settings[extensionName].enableNotification = value;
     saveSettingsDebounced();
 }
 
@@ -114,21 +130,21 @@ async function onRequestPermissionClick() {
         return;
     }
     
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-            toastr.success('已获得通知权限');
-            // 测试通知
-            new Notification("通知权限测试", {
-                body: "如果您看到这条通知，说明权限已经设置成功",
-                icon: "/favicon.ico"
-            });
-        } else {
-            toastr.warning('未获得通知权限，系统通知功能将无法使用');
-        }
-    } catch (error) {
-        console.error(error);
-        toastr.error('申请权限时出现错误');
+    if (Notification.permission === "denied") {
+        toastr.error('通知权限已被拒绝，请在浏览器设置中手动开启');
+        return;
+    }
+
+    const granted = await requestNotificationPermission();
+    if (granted) {
+        toastr.success('已获得通知权限');
+        // 测试通知
+        new Notification("通知权限测试", {
+            body: "如果您看到这条通知，说明权限已经设置成功",
+            icon: "/favicon.ico"
+        });
+    } else {
+        toastr.warning('未获得通知权限，系统通知功能将无法使用');
     }
 }
 
@@ -178,5 +194,9 @@ jQuery(async () => {
     $("#request_notification_permission").on("click", onRequestPermissionClick);
 
     loadSettings();
-    await requestNotificationPermission();
+    
+    // 初始化时不自动请求权限，等待用户交互
+    if (Notification.permission === "granted") {
+        console.log("已具有通知权限");
+    }
 });
