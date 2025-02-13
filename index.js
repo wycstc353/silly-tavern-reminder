@@ -78,11 +78,11 @@ function onButtonClick() {
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
 function handleIncomingMessage(data) {
+    // 只在页面隐藏时才修改标题和开始闪烁
     if (document.hidden) {
         startTitleFlash();
-    } else {
-        document.title = "【收到新消息了】";
     }
+    // 如果页面可见，不做任何处理
 }
 
 // 当扩展加载时调用此函数
