@@ -13,6 +13,38 @@ const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 const defaultSettings = {};
 
+// 添加闪烁相关变量
+let titleFlashTimer = null;
+let originalTitle = document.title;
+let isFlashing = false;
+
+// 开始闪烁标题
+function startTitleFlash() {
+    if (isFlashing) return;
+    isFlashing = true;
+    originalTitle = document.title;
+    titleFlashTimer = setInterval(() => {
+        document.title = document.title === "【收到新消息了】" ? originalTitle : "【收到新消息了】";
+    }, 1000);
+}
+
+// 停止闪烁标题
+function stopTitleFlash() {
+    if (titleFlashTimer) {
+        clearInterval(titleFlashTimer);
+        titleFlashTimer = null;
+    }
+    isFlashing = false;
+    document.title = originalTitle;
+}
+
+// 监听页面可见性变化
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && isFlashing) {
+        stopTitleFlash();
+    }
+});
+
 // 如果存在扩展设置，则加载它们，否则将其初始化为默认值
 async function loadSettings() {
   // 如果设置不存在则创建它们
@@ -46,7 +78,11 @@ function onButtonClick() {
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
 function handleIncomingMessage(data) {
-  document.title = "【收到新消息了】";
+    if (document.hidden) {
+        startTitleFlash();
+    } else {
+        document.title = "【收到新消息了】";
+    }
 }
 
 // 当扩展加载时调用此函数
