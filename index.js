@@ -11,7 +11,9 @@ import { saveSettingsDebounced, eventSource, event_types } from "../../../../scr
 const extensionName = "silly-tavern-reminder";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
-const defaultSettings = {};
+const defaultSettings = {
+    enableReminder: true, // 添加提醒功能的默认值
+};
 
 // 添加闪烁相关变量
 let titleFlashTimer = null;
@@ -58,9 +60,9 @@ async function loadSettings() {
 }
 
 // 当扩展设置在 UI 中更改时调用此函数
-function onExampleInput(event) {
+function onReminderToggle(event) {
   const value = Boolean($(event.target).prop("checked"));
-  extension_settings[extensionName].example_setting = value;
+  extension_settings[extensionName].enableReminder = value;
   saveSettingsDebounced();
 }
 
@@ -78,8 +80,8 @@ function onButtonClick() {
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
 function handleIncomingMessage(data) {
-    // 只在页面隐藏时才修改标题和开始闪烁
-    if (document.hidden) {
+    // 只在提醒功能开启且页面隐藏时才修改标题和开始闪烁
+    if (document.hidden && extension_settings[extensionName].enableReminder) {
         startTitleFlash();
     }
     // 如果页面可见，不做任何处理
@@ -97,7 +99,7 @@ jQuery(async () => {
 
   // 这些是监听事件的示例
   $("#my_button").on("click", onButtonClick);
-  $("#example_setting").on("input", onExampleInput);
+  $("#example_setting").on("input", onReminderToggle);
 
   // 启动时加载设置（如果有的话）
   loadSettings();
