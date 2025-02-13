@@ -1,5 +1,12 @@
 <!-- You might want to add additional HTML elements to ST. 
     It's good practice to separate it out from your code -->
+<style>
+    .example-extension_block i.fa-info-circle {
+        display: flex;
+        align-items: center;
+        margin-left: 5px;
+    }
+</style>
 <div class="example-extension-settings">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
@@ -21,7 +28,7 @@
 
             <div class="example-extension_block flex-container">
                 <input id="request_notification_permission" class="menu_button" type="button" value="申请通知权限" />
-                <label for="request_notification_permission">如果系统通知无法正常工作，请点击此按钮重新申请权限</label>
+                <i title="如果系统通知无法正常工作，请点击此按钮重新申请权限" class="fa-solid fa-info-circle"></i>
             </div>
 
             <hr class="sysHR" />
