@@ -42,14 +42,11 @@ function onButtonClick() {
   );
 }
 
-//监听事件
+//监听消息生成完毕事件
 eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
 
 function handleIncomingMessage(data) {
-  console.log("收到新消息:", data);  // 在控制台打印消息数据
-  toastr.info(
-    "收到消息了"
-  );
+  document.title = "【收到新消息了】";
 }
 
 // 当扩展加载时调用此函数
