@@ -21,184 +21,221 @@ let titleFlashTimer = null;
 let originalTitle = document.title;
 let isFlashing = false;
 
-// 请求通知权限
-async function requestNotificationPermission() {
-    if (!("Notification" in window)) {
-        console.log("此浏览器不支持通知功能");
-        return false;
+// 通知管理器
+const NotificationManager = {
+    // 检查通知支持
+    checkSupport() {
+        if (!("Notification" in window)) {
+            console.log("此浏览器不支持通知功能");
+            return false;
+        }
+        return true;
+    },
+
+    // 检查通知权限
+    checkPermission() {
+        return Notification.permission;
+    },
+
+    // 请求通知权限
+    async requestPermission() {
+        if (!this.checkSupport()) return false;
+        
+        try {
+            const permission = await Notification.requestPermission();
+            return permission === "granted";
+        } catch (error) {
+            console.error("请求通知权限时出错:", error);
+            return false;
+        }
+    },
+
+    // 发送通知
+    send() {
+        if (this.checkPermission() === "granted" && extension_settings[extensionName].enableNotification) {
+            new Notification("SillyTavern 新消息", {
+                body: "您有新的消息",
+                icon: "/favicon.ico"
+            });
+        }
     }
-    
-    try {
-        const permission = await Notification.requestPermission();
-        return permission === "granted";
-    } catch (error) {
-        console.error("请求通知权限时出错:", error);
-        return false;
+};
+
+// 标题闪烁管理器
+const TitleFlashManager = {
+    timer: null,
+    originalTitle: "",
+    isFlashing: false,
+    newMessageTitle: "【收到新消息了】",
+    flashInterval: 1000,
+
+    start() {
+        if (this.isFlashing) return;
+        this.isFlashing = true;
+        this.originalTitle = document.title;
+        this.timer = setInterval(() => {
+            document.title = document.title === this.newMessageTitle ? this.originalTitle : this.newMessageTitle;
+        }, this.flashInterval);
+    },
+
+    stop() {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+        this.isFlashing = false;
+        document.title = this.originalTitle;
     }
-}
+};
 
-// 发送通知
-function sendNotification() {
-    if (Notification.permission === "granted" && extension_settings[extensionName].enableNotification) {
-        new Notification("SillyTavern 新消息", {
-            body: "您有新的消息",
-            icon: "/favicon.ico"
-        });
+// 使用事件委托优化事件监听
+const handleVisibilityChange = () => {
+    if (!document.hidden && TitleFlashManager.isFlashing) {
+        TitleFlashManager.stop();
     }
-}
+};
 
-// 开始闪烁标题
-function startTitleFlash() {
-    if (isFlashing) return;
-    isFlashing = true;
-    originalTitle = document.title;
-    titleFlashTimer = setInterval(() => {
-        document.title = document.title === "【收到新消息了】" ? originalTitle : "【收到新消息了】";
-    }, 1000);
-}
-
-// 停止闪烁标题
-function stopTitleFlash() {
-    if (titleFlashTimer) {
-        clearInterval(titleFlashTimer);
-        titleFlashTimer = null;
+const handleWindowFocus = () => {
+    if (TitleFlashManager.isFlashing) {
+        TitleFlashManager.stop();
     }
-    isFlashing = false;
-    document.title = originalTitle;
-}
+};
 
-// 监听页面可见性变化
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && isFlashing) {
-        stopTitleFlash();
+// 添加事件监听
+document.addEventListener('visibilitychange', handleVisibilityChange);
+window.addEventListener('focus', handleWindowFocus);
+
+// 设置管理器
+const SettingsManager = {
+    // 加载设置
+    async load() {
+        extension_settings[extensionName] = extension_settings[extensionName] || {};
+        if (Object.keys(extension_settings[extensionName]).length === 0) {
+            Object.assign(extension_settings[extensionName], defaultSettings);
+        }
+        this.updateUI();
+    },
+
+    // 更新UI
+    updateUI() {
+        $("#title_reminder_setting").prop("checked", extension_settings[extensionName].enableReminder);
+        $("#notification_setting").prop("checked", extension_settings[extensionName].enableNotification);
+    },
+
+    // 保存设置
+    save(key, value) {
+        extension_settings[extensionName][key] = value;
+        saveSettingsDebounced();
     }
-});
+};
 
-// 添加窗口焦点变化监听
-window.addEventListener('focus', () => {
-    if (isFlashing) {
-        stopTitleFlash();
-    }
-});
+// 事件处理器
+const EventHandler = {
+    // 处理提醒开关
+    async onReminderToggle(event) {
+        const value = Boolean($(event.target).prop("checked"));
+        SettingsManager.save('enableReminder', value);
+    },
 
-// 如果存在扩展设置，则加载它们，否则将其初始化为默认值
-async function loadSettings() {
-  // 如果设置不存在则创建它们
-  extension_settings[extensionName] = extension_settings[extensionName] || {};
-  if (Object.keys(extension_settings[extensionName]).length === 0) {
-    Object.assign(extension_settings[extensionName], defaultSettings);
-  }
+    // 处理通知开关
+    async onNotificationToggle(event) {
+        const value = Boolean($(event.target).prop("checked"));
+        const permission = NotificationManager.checkPermission();
 
-  // 修改更新UI的方式，避免触发input事件
-  $("#title_reminder_setting").prop("checked", extension_settings[extensionName].enableReminder);
-  $("#notification_setting").prop("checked", extension_settings[extensionName].enableNotification);
-}
-
-// 当扩展设置在 UI 中更改时调用此函数
-function onReminderToggle(event) {
-  const value = Boolean($(event.target).prop("checked"));
-  extension_settings[extensionName].enableReminder = value;
-  saveSettingsDebounced();
-}
-
-// 修改通知设置切换函数
-async function onNotificationToggle(event) {
-    const value = Boolean($(event.target).prop("checked"));
-    
-    // 只有当用户手动开启通知时才请求权限
-    if (value && Notification.permission === "denied") {
-        toastr.error('通知权限已被拒绝，请在浏览器设置中手动开启');
-        $(event.target).prop("checked", false);
-        return;
-    }
-
-    // 如果是程序设置的checked状态，不要请求权限
-    if (value && Notification.permission !== "granted" && event.isTrigger === undefined) {
-        const granted = await requestNotificationPermission();
-        if (!granted) {
+        if (value && permission === "denied") {
+            toastr.error('通知权限已被拒绝，请在浏览器设置中手动开启');
             $(event.target).prop("checked", false);
             return;
         }
-    }
 
-    extension_settings[extensionName].enableNotification = value;
-    saveSettingsDebounced();
-}
+        if (value && permission !== "granted" && event.isTrigger === undefined) {
+            const granted = await NotificationManager.requestPermission();
+            if (!granted) {
+                $(event.target).prop("checked", false);
+                return;
+            }
+        }
 
-// 添加权限申请按钮处理函数
-async function onRequestPermissionClick() {
-    if (!("Notification" in window)) {
-        toastr.error('此浏览器不支持通知功能');
-        return;
-    }
-    
-    if (Notification.permission === "denied") {
-        toastr.error('通知权限已被拒绝，请在浏览器设置中手动开启');
-        return;
-    }
+        SettingsManager.save('enableNotification', value);
+    },
 
-    const granted = await requestNotificationPermission();
-    if (granted) {
-        toastr.success('已获得通知权限');
-        // 测试通知
-        new Notification("通知权限测试", {
-            body: "如果您看到这条通知，说明权限已经设置成功",
-            icon: "/favicon.ico"
-        });
-    } else {
-        toastr.warning('未获得通知权限，系统通知功能将无法使用');
-    }
-}
+    // 处理权限申请
+    async onRequestPermissionClick() {
+        if (!NotificationManager.checkSupport()) {
+            toastr.error('此浏览器不支持通知功能');
+            return;
+        }
 
-//监听消息生成完毕事件
-eventSource.on(event_types.MESSAGE_RECEIVED, handleIncomingMessage);
+        const permission = NotificationManager.checkPermission();
+        if (permission === "denied") {
+            toastr.error('通知权限已被拒绝，请在浏览器设置中手动开启');
+            return;
+        }
 
-// 添加新的判断函数
-function shouldSendReminder() {
-    // 如果标签页隐藏，肯定需要提醒
-    if (document.hidden) {
-        return true;
+        const granted = await NotificationManager.requestPermission();
+        if (granted) {
+            toastr.success('已获得通知权限');
+            new Notification("通知权限测试", {
+                body: "如果您看到这条通知，说明权限已经设置成功",
+                icon: "/favicon.ico"
+            });
+        } else {
+            toastr.warning('未获得通知权限，系统通知功能将无法使用');
+        }
     }
-    // 如果标签页可见但窗口失去焦点，也需要提醒
-    if (!document.hidden && !document.hasFocus()) {
-        return true;
-    }
-    return false;
-}
+};
 
-function handleIncomingMessage(data) {
-    const needReminder = shouldSendReminder();
-    
-    // 标题闪烁提醒
-    if (needReminder && extension_settings[extensionName].enableReminder) {
-        startTitleFlash();
+// 消息处理器
+const MessageHandler = {
+    shouldSendReminder() {
+        return document.hidden || (!document.hidden && !document.hasFocus());
+    },
+
+    handleIncomingMessage(data) {
+        const needReminder = this.shouldSendReminder();
+        
+        if (needReminder) {
+            if (extension_settings[extensionName].enableReminder) {
+                TitleFlashManager.start();
+            }
+            NotificationManager.send();
+        }
     }
-    // 系统通知提醒
-    if (needReminder) {
-        sendNotification();
+};
+
+// 监听消息生成完毕事件
+eventSource.on(event_types.MESSAGE_RECEIVED, MessageHandler.handleIncomingMessage.bind(MessageHandler));
+
+// 初始化管理器
+const InitManager = {
+    async init() {
+        try {
+            // 加载HTML和CSS
+            const settingsHtml = await $.get(`${extensionFolderPath}/reminder.html`);
+            $("#extensions_settings2").append(settingsHtml);
+
+            const styleSheet = document.createElement('link');
+            styleSheet.rel = 'stylesheet';
+            styleSheet.href = `/scripts/extensions/third-party/${extensionName}/style.css`;
+            document.head.appendChild(styleSheet);
+
+            // 绑定事件监听
+            $("#title_reminder_setting").on("input", EventHandler.onReminderToggle);
+            $("#notification_setting").on("input", EventHandler.onNotificationToggle);
+            $("#request_notification_permission").on("click", EventHandler.onRequestPermissionClick);
+
+            // 加载设置
+            await SettingsManager.load();
+
+            // 检查通知权限
+            if (NotificationManager.checkPermission() === "granted") {
+                console.log("已具有通知权限");
+            }
+        } catch (error) {
+            console.error("初始化扩展时出错:", error);
+        }
     }
-}
+};
 
 // 当扩展加载时调用此函数
-jQuery(async () => {
-    const settingsHtml = await $.get(`${extensionFolderPath}/reminder.html`);
-    $("#extensions_settings2").append(settingsHtml);
-
-    // 加载CSS文件
-    const styleSheet = document.createElement('link');
-    styleSheet.rel = 'stylesheet';
-    styleSheet.href = `/scripts/extensions/third-party/${extensionName}/style.css`;
-    document.head.appendChild(styleSheet);
-
-    // 只保留复选框事件监听
-    $("#title_reminder_setting").on("input", onReminderToggle);
-    $("#notification_setting").on("input", onNotificationToggle);
-    $("#request_notification_permission").on("click", onRequestPermissionClick);
-
-    loadSettings();
-    
-    // 初始化时不自动请求权限，等待用户交互
-    if (Notification.permission === "granted") {
-        console.log("已具有通知权限");
-    }
-});
+jQuery(() => InitManager.init());
