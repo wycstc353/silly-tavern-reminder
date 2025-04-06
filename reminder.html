@@ -13,11 +13,39 @@
                 <label for="title_reminder_setting">启用新消息标题提醒</label>
                 <i title="当切换到其他标签页时，收到新消息会通过闪烁标题提醒" class="fa-solid fa-info-circle"></i>
             </div>
+
+            <hr class="sysHR" /> <!-- Separator -->
+
             <div class="reminder-extension_block flex-container">
                 <input id="notification_setting" type="checkbox" />
                 <label for="notification_setting">启用新消息系统提醒</label>
                 <i title="当切换到其他标签页时，收到新消息会通过系统通知提醒" class="fa-solid fa-info-circle"></i>
             </div>
+            <!-- New File Input for Notification Sound -->
+            <div class="reminder-extension_block flex-container">
+                 <label for="notification_sound_file" class="subtle-label">选择提醒声音:</label>
+                 <input id="notification_sound_file" type="file" accept="audio/*" style="flex-grow: 1; margin-left: 5px;" />
+                 <small id="notification_sound_filename" class="text-muted" style="margin-left: 5px;"></small>
+                 <button id="clear_notification_sound" class="menu_button small_button" title="恢复默认声音" style="margin-left: 5px;">默认</button>
+            </div>
+
+             <hr class="sysHR" /> <!-- Separator -->
+
+            <div class="reminder-extension_block flex-container">
+                <input id="error_sound_setting" type="checkbox" />
+                <label for="error_sound_setting">启用错误提示音</label>
+                <i title="当系统发生错误时播放提示音" class="fa-solid fa-info-circle"></i>
+            </div>
+             <!-- New File Input for Error Sound -->
+             <div class="reminder-extension_block flex-container">
+                <label for="error_sound_file" class="subtle-label">选择错误提示音:</label>
+                <input id="error_sound_file" type="file" accept="audio/*" style="flex-grow: 1; margin-left: 5px;"/>
+                <small id="error_sound_filename" class="text-muted" style="margin-left: 5px;"></small>
+                <button id="clear_error_sound" class="menu_button small_button" title="恢复默认声音" style="margin-left: 5px;">默认</button>
+           </div>
+
+            <hr class="sysHR" /> <!-- Separator -->
+
             <div>
                 <strong>权限申请</strong>
             </div>
@@ -30,3 +58,16 @@
         </div>
     </div>
 </div>
+
+<!-- Add some basic styles if needed, or put in your style.css -->
+<style>
+    .subtle-label {
+        font-size: 0.9em;
+        color: var(--text_color2); /* Adjust color as needed */
+    }
+    .small_button {
+        padding: 2px 6px;
+        font-size: 0.8em;
+        min-width: auto;
+    }
+</style>
