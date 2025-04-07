@@ -1,73 +1,167 @@
+<!-- 文件名: reminder.html -->
 <div class="reminder-extension-settings">
     <div class="inline-drawer">
+        <!-- 可折叠区域的头部 -->
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>酒馆消息提醒</b>
-            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+            <b>酒馆消息提醒 (平台感知版)</b> <!-- 扩展标题 -->
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div> <!-- 折叠图标 -->
         </div>
+        <!-- 可折叠区域的内容 -->
         <div class="inline-drawer-content">
+
+            <!-- ================== 通用设置 ================== -->
             <div>
-                <strong>消息提醒开关</strong>
+                <strong>通用设置</strong> <!-- 分组标题 -->
+                <i title="这些设置对所有平台都生效" class="fa-solid fa-info-circle"></i> <!-- 分组提示 -->
             </div>
+            <!-- 申请权限按钮行 -->
             <div class="reminder-extension_block flex-container">
-                <input id="title_reminder_setting" type="checkbox" />
-                <label for="title_reminder_setting">启用新消息标题提醒</label>
-                <i title="当切换到其他标签页时，收到新消息会通过闪烁标题提醒" class="fa-solid fa-info-circle"></i>
+                <button id="request_notification_permission" class="menu_button permission-request-inline" title="如果系统通知无法正常工作，点击重新申请权限">
+                    <i class="fa-solid fa-bell"></i> <!-- 按钮图标 -->
+                    申请/测试系统通知权限 <!-- 按钮文字 -->
+                </button>
+                <i title="点击此按钮可请求浏览器授予本网站发送桌面通知的权限，或测试当前权限状态。此权限是“启用新消息系统提醒”功能的基础。" class="fa-solid fa-info-circle" style="margin-left: 5px;"></i> <!-- 按钮旁边的提示 -->
             </div>
-
-            <hr class="sysHR" /> <!-- Separator -->
-
-            <div class="reminder-extension_block flex-container">
-                <input id="notification_setting" type="checkbox" />
-                <label for="notification_setting">启用新消息系统提醒</label>
-                <i title="当切换到其他标签页时，收到新消息会通过系统通知提醒" class="fa-solid fa-info-circle"></i>
-            </div>
-            <!-- New File Input for Notification Sound -->
-            <div class="reminder-extension_block flex-container">
-                 <label for="notification_sound_file" class="subtle-label">选择提醒声音:</label>
-                 <input id="notification_sound_file" type="file" accept="audio/*" style="flex-grow: 1; margin-left: 5px;" />
-                 <small id="notification_sound_filename" class="text-muted" style="margin-left: 5px;"></small>
-                 <button id="clear_notification_sound" class="menu_button small_button" title="恢复默认声音" style="margin-left: 5px;">默认</button>
-            </div>
-
-             <hr class="sysHR" /> <!-- Separator -->
-
-            <div class="reminder-extension_block flex-container">
-                <input id="error_sound_setting" type="checkbox" />
-                <label for="error_sound_setting">启用错误提示音</label>
-                <i title="当系统发生错误时播放提示音" class="fa-solid fa-info-circle"></i>
-            </div>
-             <!-- New File Input for Error Sound -->
+             <!-- 平台选择行 -->
              <div class="reminder-extension_block flex-container">
-                <label for="error_sound_file" class="subtle-label">选择错误提示音:</label>
-                <input id="error_sound_file" type="file" accept="audio/*" style="flex-grow: 1; margin-left: 5px;"/>
-                <small id="error_sound_filename" class="text-muted" style="margin-left: 5px;"></small>
-                <button id="clear_error_sound" class="menu_button small_button" title="恢复默认声音" style="margin-left: 5px;">默认</button>
+                <label for="platformOverride" class="subtle-label">强制平台模式:</label> <!-- 选项标签 -->
+                <select id="platformOverride" class="text_pole" style="margin-left: 5px;"> <!-- 下拉选择框 -->
+                    <option value="auto">自动检测</option>
+                    <option value="pc">PC (电脑)</option>
+                    <option value="android">Android (安卓)</option>
+                    <option value="ios">iOS (苹果)</option>
+                </select>
+                <!-- 用于显示自动检测结果的元素 -->
+                <small id="detected_platform_display" class="text-muted" style="margin-left: 10px; font-style: italic;"></small>
+                <i title="用于调整特定平台的行为。通常自动检测即可。" class="fa-solid fa-info-circle" style="margin-left: 5px; flex-shrink: 0;"></i> <!-- 选项提示 -->
+            </div>
+            <!-- 标题提醒行 -->
+            <div class="reminder-extension_block flex-container">
+                <input id="enableReminder" type="checkbox" /> <!-- 复选框 -->
+                <label for="enableReminder">启用新消息标题提醒 (PC)</label> <!-- 选项标签 -->
+                <i title="仅在电脑浏览器上生效。当切换到其他标签页时，收到新消息会通过闪烁标题提醒。" class="fa-solid fa-info-circle"></i> <!-- 选项提示 -->
+            </div>
+
+            <!-- 分隔线 -->
+            <hr class="sysHR" />
+
+            <!-- ================== 系统通知 & 声音 (通用部分) ================== -->
+            <div>
+                <strong>系统通知 & 声音</strong> <!-- 分组标题 -->
+            </div>
+            <!-- 系统通知总开关行 -->
+            <div class="reminder-extension_block flex-container">
+                <input id="enableNotification" type="checkbox" /> <!-- 复选框 -->
+                <label for="enableNotification">启用新消息系统提醒</label> <!-- 选项标签 -->
+                <i title="勾选此项以启用下方的通知间隔、声音和移动端设置。需要先通过上方的按钮获取权限。" class="fa-solid fa-info-circle"></i> <!-- 选项提示 -->
+            </div>
+            <!-- 通知去重间隔行 -->
+            <div class="reminder-extension_block flex-container">
+                <label for="notificationDebounceSeconds" class="subtle-label">通知间隔(秒):</label> <!-- 选项标签 -->
+                <input id="notificationDebounceSeconds" type="number" min="0" step="1" value="5" class="text_pole" style="width: 50px; margin-left: 5px;" /> <!-- 数字输入框 -->
+                <i title="设置收到多条消息时，通知触发的最短时间间隔（0表示不限制）。" class="fa-solid fa-info-circle" style="margin-left: 5px;"></i> <!-- 选项提示 -->
+            </div>
+            <!-- 通知声音选择行 -->
+            <div class="reminder-extension_block flex-container">
+                 <label for="notification_sound_file" class="subtle-label">选择提醒声音:</label> <!-- 选项标签 -->
+                 <input id="notification_sound_file" type="file" accept="audio/*" style="flex-grow: 1; margin-left: 5px;" /> <!-- 文件选择框 -->
+                 <small id="notification_sound_filename" class="text-muted" style="margin-left: 5px;"></small> <!-- 显示文件名的元素 -->
+                 <button id="clear_notification_sound" class="menu_button small_button" title="恢复默认声音" style="margin-left: 5px;">默认</button> <!-- 清除按钮 -->
+            </div>
+
+             <!-- 分隔线 -->
+             <hr class="sysHR" />
+
+             <!-- ================== 错误提示 (通用) ================== -->
+             <div>
+                <strong>错误提示</strong> <!-- 分组标题 -->
+            </div>
+             <!-- 错误提示音开关行 -->
+            <div class="reminder-extension_block flex-container">
+                <input id="enableErrorSound" type="checkbox" /> <!-- 复选框 -->
+                <label for="enableErrorSound">启用错误提示音</label> <!-- 选项标签 -->
+                <i title="当系统发生错误时播放提示音" class="fa-solid fa-info-circle"></i> <!-- 选项提示 -->
+            </div>
+             <!-- 错误声音选择行 -->
+             <div class="reminder-extension_block flex-container">
+                <label for="error_sound_file" class="subtle-label">选择错误提示音:</label> <!-- 选项标签 -->
+                <input id="error_sound_file" type="file" accept="audio/*" style="flex-grow: 1; margin-left: 5px;"/> <!-- 文件选择框 -->
+                <small id="error_sound_filename" class="text-muted" style="margin-left: 5px;"></small> <!-- 显示文件名的元素 -->
+                <button id="clear_error_sound" class="menu_button small_button" title="恢复默认声音" style="margin-left: 5px;">默认</button> <!-- 清除按钮 -->
            </div>
 
-            <hr class="sysHR" /> <!-- Separator -->
-
-            <div>
-                <strong>权限申请</strong>
-            </div>
-            <div class="reminder-extension_block flex-container">
-                <input id="request_notification_permission" class="menu_button" type="button" value="申请通知权限" />
-                <i title="如果系统通知无法正常工作，请点击此按钮重新申请权限" class="fa-solid fa-info-circle"></i>
-            </div>
-
+            <!-- 分隔线 -->
             <hr class="sysHR" />
-        </div>
-    </div>
-</div>
 
-<!-- Add some basic styles if needed, or put in your style.css -->
+            <!-- ================== 移动端专属设置 (默认隐藏) ================== -->
+            <div id="mobile_specific_settings" style="display: none;"> <!-- 默认隐藏的容器 -->
+                <div>
+                    <strong>移动端专属设置</strong> <!-- 分组标题 -->
+                    <i title="这些设置仅在检测到平台为安卓或iOS时，或手动强制为移动平台时生效。" class="fa-solid fa-info-circle"></i> <!-- 分组提示 -->
+                </div>
+                <!-- 移动端通知行为行 -->
+                <div class="reminder-extension_block flex-container">
+                    <label for="mobileNotificationBehavior" class="subtle-label">移动端通知方式:</label> <!-- 选项标签 -->
+                    <select id="mobileNotificationBehavior" class="text_pole" style="margin-left: 5px;"> <!-- 下拉选择框 -->
+                        <option value="replace">替换旧通知 (推荐)</option>
+                        <option value="stack">允许通知堆叠</option>
+                    </select>
+                    <i title="'替换旧通知' 使用同一通知标识(tag)，新消息会更新现有通知；'允许通知堆叠' 不使用tag，每条新消息都是独立通知。" class="fa-solid fa-info-circle" style="margin-left: 5px;"></i> <!-- 选项提示 -->
+                </div>
+                 <!-- 震动开关行 -->
+                <div class="reminder-extension_block flex-container">
+                    <input id="enableVibration" type="checkbox" /> <!-- 复选框 -->
+                    <label for="enableVibration">启用新消息震动</label> <!-- 选项标签 -->
+                    <i title="在移动设备上收到新消息时触发震动。需要浏览器支持和授权。" class="fa-solid fa-info-circle"></i> <!-- 选项提示 -->
+                </div>
+                <!-- 分隔线 -->
+                <hr class="sysHR" />
+            </div> <!-- 结束 mobile_specific_settings -->
+
+        </div> <!-- 结束 inline-drawer-content -->
+    </div> <!-- 结束 inline-drawer -->
+</div> <!-- 结束 reminder-extension-settings -->
+
+<!-- 内联样式 (或移至 style.css) -->
 <style>
-    .subtle-label {
-        font-size: 0.9em;
-        color: var(--text_color2); /* Adjust color as needed */
+    /* --- Flex 容器基础样式 --- */
+    .reminder-extension-settings .flex-container { display: flex; align-items: center; margin-bottom: 5px; gap: 5px; }
+    /* --- 次要标签样式 --- */
+    .reminder-extension-settings .subtle-label { font-size: 0.9em; color: var(--text_color2); white-space: nowrap; }
+    /* --- 小按钮样式 --- */
+    .reminder-extension-settings .small_button { padding: 2px 6px; font-size: 0.8em; min-width: auto; white-space: nowrap; }
+    /* --- 文件名显示样式 --- */
+    .reminder-extension-settings .text-muted { color: var(--text_color2); font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; display: inline-block; vertical-align: middle; }
+    /* --- 文件选择框最小宽度 --- */
+    .reminder-extension-settings input[type="file"] { min-width: 50px; }
+    /* --- 信息图标样式 --- */
+    .reminder-extension-settings .fa-info-circle { vertical-align: middle; color: var(--text_color2); cursor: help; flex-shrink: 0; /* 防止图标被压缩 */ }
+    /* --- 分组标题下边距 --- */
+    .reminder-extension-settings strong { display: inline-block; margin-bottom: 3px; }
+    /* --- 分隔线上下边距 --- */
+    .reminder-extension-settings hr.sysHR { margin-top: 8px; margin-bottom: 8px; }
+    /* --- 确保标签和下拉框不被压缩 --- */
+    .reminder-extension-settings .flex-container label.subtle-label,
+    .reminder-extension-settings .flex-container select { flex-shrink: 0; }
+    /* --- 自动检测平台结果显示区域样式 --- */
+    .reminder-extension-settings .flex-container #detected_platform_display { flex-grow: 1; text-align: left; min-width: 80px; font-style: italic; }
+
+    /* --- 行内权限申请按钮样式 --- */
+    .reminder-extension-settings .permission-request-inline {
+        font-size: inherit; /* 继承字体大小，与 label 一致 */
+        padding: 2px 6px;  /* 使用 small_button 类似的内边距 */
+        margin-left: 0; /* 可调整 */
+        white-space: normal; /* 允许按钮文字换行 */
+        text-align: left;    /* 左对齐 */
+        flex-grow: 1;        /* 让按钮占据可用空间 */
+        max-width: fit-content; /* 防止按钮无限增长 */
     }
-    .small_button {
-        padding: 2px 6px;
-        font-size: 0.8em;
-        min-width: auto;
+    /* --- 行内权限申请按钮图标样式 --- */
+    .reminder-extension-settings .permission-request-inline i {
+        margin-right: 5px; /* 图标和文字间距 */
+    }
+    /* --- 权限按钮与右侧信息图标间距 --- */
+    #request_notification_permission + .fa-info-circle {
+        margin-left: 5px;
     }
 </style>
